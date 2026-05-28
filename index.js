@@ -220,7 +220,7 @@ function showMessagePopup(index) {
         '<div class="' + PREFIX + '-pop-body mes_text">' + bodyHtml + '</div>' +
         '<div class="' + PREFIX + '-pop-foot">' +
         '<button class="' + PREFIX + '-pop-jump">이 위치로 이동</button>' +
-        '<span class="' + PREFIX + '-pop-warn">오래된 메시지는 이동이 안 될 수 있어요.</span>' +
+        '<span class="' + PREFIX + '-pop-warn">⚠ 너무 오래된 메시지는 이동이 안 될 수 있어요</span>' +
         '</div>' +
         '</div>';
     document.body.appendChild(pop);
@@ -239,21 +239,42 @@ function showMessagePopup(index) {
 function jumpToMessage(messageIndex) {
     closePanel();
     const sel = '#chat .mes[mesid="' + messageIndex + '"]';
+
+    // 이미 DOM 에 있으면 바로 이동
+    const immediate = document.querySelector(sel);
+    if (immediate) {
+        scrollToEl(immediate);
+        return;
+    }
+
+    // 없으면: 가상 스크롤로 아직 안 그려진 (오래된) 메시지일 수 있음
+    if (window.toastr) {
+        toastr.info('오래된 메시지일 수 있어요. 잠시 찾는 중…', '', { timeOut: 1500 });
+    }
     let tries = 0;
-    const maxTries = 40; // 약 4초
+    const maxTries = 30; // 약 3초
     const timer = setInterval(() => {
         const el = document.querySelector(sel);
         if (el) {
             clearInterval(timer);
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // 잠깐 강조
-            el.classList.add(PREFIX + '-flash');
-            setTimeout(() => el.classList.remove(PREFIX + '-flash'), 1600);
+            scrollToEl(el);
         } else if (++tries >= maxTries) {
             clearInterval(timer);
-            if (window.toastr) toastr.info('메시지를 찾지 못했어요. 채팅을 스크롤한 뒤 다시 시도해 주세요.');
+            if (window.toastr) {
+                toastr.warning(
+                    '너무 오래된 메시지는 바로 이동할 수 없어요. 채팅을 위로 스크롤해서 해당 메시지를 한 번 불러온 뒤 다시 검색해 주세요.',
+                    '이동 실패',
+                    { timeOut: 6000 }
+                );
+            }
         }
     }, 100);
+}
+
+function scrollToEl(el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add(PREFIX + '-flash');
+    setTimeout(() => el.classList.remove(PREFIX + '-flash'), 1600);
 }
 
 /* ----------------------------- 패널 UI ----------------------------- */
