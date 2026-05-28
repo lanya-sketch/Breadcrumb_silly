@@ -264,8 +264,8 @@
 }
 .st-bc-fab:active { transform: scale(0.94); }
 
-/* 마법봉 메뉴 아이콘 정렬 */
-#st-bc-wand .extensionsMenuExtensionButton { margin-right: 4px; }
+/* 마법봉 메뉴 아이콘: 다른 항목과 동일 정렬 (추가 여백 제거) */
+#st-bc-wand .fa-magnifying-glass { width: 1em; text-align: center; }
 
 /* 모바일 */
 @media (max-width: 600px) {

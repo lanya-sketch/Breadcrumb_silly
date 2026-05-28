@@ -339,7 +339,7 @@ function addWandButton() {
     item.tabIndex = 0;
     item.title = '현재 채팅 검색';
     item.innerHTML =
-        '<div class="fa-solid fa-magnifying-glass extensionsMenuExtensionButton"></div>' +
+        '<div class="fa-solid fa-magnifying-glass"></div>' +
         '<span>채팅 검색</span>';
     // ST 마법봉 메뉴 항목은 click 만으로 모바일/PC 모두 동작 (touchend/preventDefault 는 오히려 방해)
     item.addEventListener('click', () => {
