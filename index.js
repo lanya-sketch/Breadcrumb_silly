@@ -230,7 +230,12 @@ function buildPanel() {
 function openPanel() {
     buildPanel();
     const panel = document.getElementById(PREFIX + '-panel');
+    // 다른 요소(메뉴/모달)에 가려지지 않도록 body 맨 끝으로 이동
+    if (panel.parentElement !== document.body || document.body.lastElementChild !== panel) {
+        document.body.appendChild(panel);
+    }
     panel.classList.add(PREFIX + '-show');
+    panel.style.display = 'block'; // CSS 충돌 대비 강제 표시
     state.open = true;
     const input = document.getElementById(PREFIX + '-input');
     setTimeout(() => { input && input.focus(); input && input.select(); }, 30);
@@ -241,7 +246,10 @@ function openPanel() {
 
 function closePanel() {
     const panel = document.getElementById(PREFIX + '-panel');
-    if (panel) panel.classList.remove(PREFIX + '-show');
+    if (panel) {
+        panel.classList.remove(PREFIX + '-show');
+        panel.style.display = 'none';
+    }
     state.open = false;
 }
 
@@ -263,21 +271,40 @@ function addWandButton() {
     item.innerHTML =
         '<div class="fa-solid fa-magnifying-glass extensionsMenuExtensionButton"></div>' +
         '<span>채팅 검색 (Breadcrumb)</span>';
-    item.addEventListener('click', () => {
-        // 메뉴 닫기 시도 후 패널 열기
-        togglePanel();
-    });
+    const openHandler = (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        // ST 마법봉 메뉴가 닫히는 동작과 충돌하지 않도록 약간 지연 후 열기
+        setTimeout(() => openPanel(), 60);
+    };
+    item.addEventListener('click', openHandler);
+    item.addEventListener('touchend', openHandler);
     menu.appendChild(item);
     return true;
 }
 
-/* 마법봉 메뉴는 늦게 생성될 수 있으니 재시도 */
+/* 마법봉 메뉴는 늦게 생성될 수 있으니 재시도. 실패 시 폴백 버튼 표시 */
 function ensureWandButton() {
     if (addWandButton()) return;
     let tries = 0;
     const timer = setInterval(() => {
-        if (addWandButton() || ++tries > 50) clearInterval(timer);
+        if (addWandButton()) { clearInterval(timer); return; }
+        if (++tries > 50) { clearInterval(timer); addFallbackButton(); }
     }, 200);
+}
+
+/* 폴백: 마법봉 메뉴에 못 넣었을 때 화면에 떠있는 작은 검색 버튼 */
+function addFallbackButton() {
+    if (document.getElementById(PREFIX + '-fab')) return;
+    const fab = document.createElement('button');
+    fab.id = PREFIX + '-fab';
+    fab.className = PREFIX + '-fab';
+    fab.title = '채팅 검색 (Breadcrumb)';
+    fab.innerHTML = '<div class="fa-solid fa-magnifying-glass"></div>';
+    const openHandler = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } openPanel(); };
+    fab.addEventListener('click', openHandler);
+    fab.addEventListener('touchend', openHandler);
+    document.body.appendChild(fab);
+    console.log('[Breadcrumb] 마법봉 메뉴 삽입 실패 → 폴백 버튼 표시');
 }
 
 /* ----------------------------- 단축키 ----------------------------- */
