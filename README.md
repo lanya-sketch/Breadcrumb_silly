@@ -18,7 +18,7 @@
 SillyTavern에서 **Extensions → Install Extension** 을 열고 이 저장소 주소를 붙여넣으세요:
 
 ```
-https://github.com/your-name/SillyTavern-Breadcrumb
+https://github.com/lanya-sketch/Breadcrumb_silly
 ```
 
 또는 `data/<user>/extensions/` (혹은 모든 사용자용은 `public/scripts/extensions/third-party/`) 폴더에 이 폴더를 그대로 넣으세요.
