@@ -138,7 +138,7 @@ function renderResults() {
             state.cursor = idx;
             renderResults();
             const rr = state.results[idx];
-            if (rr) jumpToMessage(rr.index);
+            if (rr) showMessagePopup(rr.index);
         });
     });
     updateNav();
@@ -162,6 +162,76 @@ function moveCursor(delta) {
     state.cursor = (state.cursor + delta + state.results.length) % state.results.length;
     renderResults();
     scrollActiveIntoView();
+}
+
+/* ST 메시지 본문을 실제 채팅과 같게 렌더 (있으면 messageFormatting, 없으면 폴백) */
+function renderMessageHtml(m, index) {
+    const ctx = SillyTavern.getContext();
+    const raw = messageText(m);
+    // 1) ST 내장 포매터가 있으면 사용 (정규식·마크다운·매크로·색 모두 적용됨)
+    try {
+        if (typeof ctx.messageFormatting === 'function') {
+            // messageFormatting(mes, ch_name, isSystem, isUser, messageId)
+            return ctx.messageFormatting(raw, authorLabel(m), !!m.is_system, !!m.is_user, index);
+        }
+    } catch (e) { /* 폴백으로 */ }
+    // 2) 폴백: showdown(마크다운) + DOMPurify
+    try {
+        const libs = SillyTavern.libs || {};
+        let html = raw;
+        if (libs.showdown) {
+            const conv = new libs.showdown.Converter({ simpleLineBreaks: true, strikethrough: true, tables: true });
+            html = conv.makeHtml(raw);
+        } else {
+            html = escapeHtml(raw).replace(/\n/g, '<br>');
+        }
+        if (libs.DOMPurify) html = libs.DOMPurify.sanitize(html);
+        return html;
+    } catch (e) {
+        return escapeHtml(raw).replace(/\n/g, '<br>');
+    }
+}
+
+/* 메시지 전문 팝업 (오래된 메시지는 DOM 에 없으므로 팝업으로 보여줌) */
+function showMessagePopup(index) {
+    const ctx = SillyTavern.getContext();
+    const m = (ctx.chat || [])[index];
+    if (!m) return;
+
+    const old = document.getElementById(PREFIX + '-pop');
+    if (old) old.remove();
+
+    const bodyHtml = renderMessageHtml(m, index);
+    const label = authorLabel(m);
+
+    const pop = document.createElement('div');
+    pop.id = PREFIX + '-pop';
+    pop.className = PREFIX + '-pop';
+    pop.innerHTML =
+        '<div class="' + PREFIX + '-pop-scrim"></div>' +
+        '<div class="' + PREFIX + '-pop-box" role="dialog" aria-label="메시지 전문">' +
+        '<div class="' + PREFIX + '-pop-head">' +
+        '<div class="' + PREFIX + '-pop-meta">' +
+        '<span class="' + PREFIX + '-pop-role">' + escapeHtml(label) + '</span>' +
+        '<span class="' + PREFIX + '-pop-sub">' + fmtTime(m) + ' · #' + index + '</span>' +
+        '</div>' +
+        '<button class="' + PREFIX + '-pop-close" title="닫기">&times;</button>' +
+        '</div>' +
+        '<div class="' + PREFIX + '-pop-body mes_text">' + bodyHtml + '</div>' +
+        '<div class="' + PREFIX + '-pop-foot">' +
+        '<button class="' + PREFIX + '-pop-jump">이 위치로 이동</button>' +
+        '<span class="' + PREFIX + '-pop-warn">오래된 메시지는 이동이 안 될 수 있어요.</span>' +
+        '</div>' +
+        '</div>';
+    document.body.appendChild(pop);
+
+    const close = () => pop.remove();
+    pop.querySelector('.' + PREFIX + '-pop-scrim').addEventListener('click', close);
+    pop.querySelector('.' + PREFIX + '-pop-close').addEventListener('click', close);
+    pop.querySelector('.' + PREFIX + '-pop-jump').addEventListener('click', () => {
+        close();
+        jumpToMessage(index);
+    });
 }
 
 /* ----------------------------- 점프 ----------------------------- */
@@ -204,7 +274,7 @@ function buildPanel() {
         '<button id="' + PREFIX + '-prev" class="' + PREFIX + '-navbtn" title="이전 (Shift+Enter)">▲</button>' +
         '<button id="' + PREFIX + '-next" class="' + PREFIX + '-navbtn" title="다음 (Enter)">▼</button>' +
         '<span id="' + PREFIX + '-pos" class="' + PREFIX + '-pos"></span>' +
-        '<span class="' + PREFIX + '-hint">클릭하면 해당 메시지로 이동</span>' +
+        '<span class="' + PREFIX + '-hint">클릭하면 메시지 전문 보기</span>' +
         '</div>' +
         '<div id="' + PREFIX + '-list" class="' + PREFIX + '-list"></div>' +
         '</div>';
@@ -271,13 +341,11 @@ function addWandButton() {
     item.innerHTML =
         '<div class="fa-solid fa-magnifying-glass extensionsMenuExtensionButton"></div>' +
         '<span>채팅 검색 (Breadcrumb)</span>';
-    const openHandler = (e) => {
-        if (e) { e.preventDefault(); e.stopPropagation(); }
-        // ST 마법봉 메뉴가 닫히는 동작과 충돌하지 않도록 약간 지연 후 열기
-        setTimeout(() => openPanel(), 60);
-    };
-    item.addEventListener('click', openHandler);
-    item.addEventListener('touchend', openHandler);
+    // ST 마법봉 메뉴 항목은 click 만으로 모바일/PC 모두 동작 (touchend/preventDefault 는 오히려 방해)
+    item.addEventListener('click', () => {
+        // 메뉴가 닫힌 뒤 열리도록 약간 지연
+        setTimeout(() => openPanel(), 50);
+    });
     menu.appendChild(item);
     return true;
 }
