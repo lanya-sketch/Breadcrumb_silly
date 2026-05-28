@@ -1,0 +1,14 @@
+{
+    "display_name": "Breadcrumb (Chat Search)",
+    "loading_order": 100,
+    "requires": [],
+    "optional": [],
+    "dependencies": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "Breadcrumb",
+    "version": "1.0.0",
+    "homePage": "https://github.com/your-name/SillyTavern-Breadcrumb",
+    "auto_update": true,
+    "minimum_client_version": "1.13.0"
+}

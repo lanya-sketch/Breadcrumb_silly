@@ -1,0 +1,166 @@
+/* Breadcrumb (Chat Search) — SillyTavern */
+
+/* 패널 오버레이 */
+.st-bc-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+}
+.st-bc-panel.st-bc-show { display: block; }
+
+.st-bc-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.st-bc-box {
+    position: absolute;
+    top: 8vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(680px, 92vw);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--SmartThemeBlurTintColor, #1e1e22);
+    color: var(--SmartThemeBodyColor, #e8e6e3);
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+/* 헤더 */
+.st-bc-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #444);
+}
+.st-bc-input {
+    flex: 1;
+    background: var(--black30a, rgba(0, 0, 0, 0.3));
+    color: var(--SmartThemeBodyColor, #e8e6e3);
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+    outline: none;
+}
+.st-bc-input:focus { border-color: var(--SmartThemeQuoteColor, #6c8cff); }
+.st-bc-cnt {
+    font-size: 12px;
+    opacity: 0.7;
+    min-width: 22px;
+    text-align: right;
+}
+.st-bc-x {
+    background: transparent;
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    color: var(--SmartThemeBodyColor, #e8e6e3);
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    flex: none;
+}
+.st-bc-x:hover { background: var(--white20a, rgba(255, 255, 255, 0.12)); }
+
+/* 내비 바 */
+.st-bc-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #444);
+    font-size: 12px;
+}
+.st-bc-navbtn {
+    background: transparent;
+    border: 1px solid var(--SmartThemeBorderColor, #444);
+    color: var(--SmartThemeBodyColor, #e8e6e3);
+    width: 28px; height: 26px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.st-bc-navbtn:hover { background: var(--white20a, rgba(255, 255, 255, 0.12)); }
+.st-bc-pos { opacity: 0.8; }
+.st-bc-hint { margin-left: auto; opacity: 0.55; }
+
+/* 결과 목록 */
+.st-bc-list {
+    overflow-y: auto;
+    padding: 6px;
+    flex: 1;
+}
+.st-bc-empty {
+    padding: 24px;
+    text-align: center;
+    opacity: 0.6;
+    font-size: 13px;
+}
+.st-bc-item {
+    padding: 9px 11px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+.st-bc-item:hover { background: var(--white20a, rgba(255, 255, 255, 0.08)); }
+.st-bc-item.st-bc-active {
+    background: var(--white20a, rgba(255, 255, 255, 0.10));
+    border-color: var(--SmartThemeQuoteColor, #6c8cff);
+}
+.st-bc-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+    font-size: 11px;
+}
+.st-bc-role {
+    font-weight: 600;
+    color: var(--SmartThemeQuoteColor, #9ab);
+}
+.st-bc-role.st-bc-user { color: var(--SmartThemeBodyColor, #e8e6e3); }
+.st-bc-time { opacity: 0.55; }
+.st-bc-snippet {
+    font-size: 13px;
+    line-height: 1.5;
+    opacity: 0.92;
+    word-break: break-word;
+}
+.st-bc-mark {
+    background: var(--SmartThemeQuoteColor, #6c8cff);
+    color: #fff;
+    border-radius: 3px;
+    padding: 0 2px;
+}
+
+/* 점프 시 메시지 강조 */
+.mes.st-bc-flash {
+    animation: st-bc-flash-anim 1.6s ease-out;
+}
+@keyframes st-bc-flash-anim {
+    0% { box-shadow: inset 0 0 0 9999px var(--white20a, rgba(120, 160, 255, 0.18)); }
+    100% { box-shadow: inset 0 0 0 9999px transparent; }
+}
+
+/* 마법봉 메뉴 아이콘 정렬 */
+#st-bc-wand .extensionsMenuExtensionButton { margin-right: 4px; }
+
+/* 모바일 */
+@media (max-width: 600px) {
+    .st-bc-box {
+        top: 0; left: 0;
+        transform: none;
+        width: 100vw;
+        max-height: 100vh;
+        height: 100%;
+        border-radius: 0;
+    }
+}
